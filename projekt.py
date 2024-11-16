@@ -1,5 +1,7 @@
+from service.document_service import DocumentService
+from model.document import Document
 import os
-from nltk.tokenize import RegexpTokenizer
+import json
 from nltk.corpus import stopwords
 import nltk
 # nltk.download('stopwords')
@@ -7,32 +9,12 @@ import nltk
 from gensim.models import Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 
-# lematyzacja i usuwanie stop words
-def preprocessing(content):
-    tokenizer = RegexpTokenizer(r'[a-z][a-z]+')
-    data = tokenizer.tokenize(content.lower())
-    data = [w for w in data if not w in stopwords.words('english')]
-    wnl = nltk.WordNetLemmatizer()
-    data = [wnl.lemmatize(w) for w in data]
-    return " ".join(data)
+DOC_2_VEC_MODEL_NAME = "d2v.model"
 
-# wczytywanie danych
-def read_data():
-    docs = []
-    dires = [d for d in os.listdir() if os.path.isdir(d)]
-    for dir in dires:
-        files = [f for f in os.listdir(f'{os.getcwd()}/{dir}') if os.path.isfile(f'{os.getcwd()}/{dir}/{f}')]
-        for file in files:
-            content = ''
-            with open(f'{os.getcwd()}/{dir}/{file}', 'r') as doc:
-                content = doc.read()
-            content = preprocessing(content)
-            docs.append(content)
-    return docs
-
+            
 # uczenie modelu
 def teach_model(docs):
-    tagged_data = [TaggedDocument(words=value, tags=[index]) for index, value in enumerate(docs)]
+    tagged_data = [TaggedDocument(words=doc.content, tags=[doc.name]) for doc in docs]
     print(len(tagged_data))
     max_epochs = 100
     alpha = 0.025
@@ -43,27 +25,38 @@ def teach_model(docs):
         model.train(tagged_data, total_examples=model.corpus_count, epochs=1)
         model.alpha -= 0.0002
         model.min_alpha = model.alpha
-    model.save("d2v.model")
+    model.save(DOC_2_VEC_MODEL_NAME)
+    print('Model nauczony pomyslnie')
+    return model
 
-# sprawdzam zmiany w plikach
-def is_changes_in_docs(docs):
-    return False
+# wczytywanie zapisanego modelu
+def read_model():
+    try:
+        model = Doc2Vec.load(DOC_2_VEC_MODEL_NAME)
+        print('Model wczytany pomyslnie')
+        return model
+    except FileNotFoundError:
+        print(f"Nie znaleziono modelu {DOC_2_VEC_MODEL_NAME}.")
+        return None
 
 def main():
-    docs = read_data() #wczytywanie na osobnym watku
-    if is_changes_in_docs(docs):
+    model = None
+    doc_service = DocumentService()
+    if doc_service.are_changes_in_files():
         while True:
-            inp = input('Znaleziono nowe dokumnty, czy chcesz ponownie wytrenować model? (może zająć to kilka minut) TAK/NIE')
+            inp = input('Znaleziono nowe dokumenty, czy chcesz ponownie wytrenowac model? (moze zajac to kilka minut) TAK/NIE\n')
             match str(inp).lower():
                 case 'tak':
-                    teach_model(docs)
+                    doc_service.read_data()
+                    model = teach_model(doc_service.documents)
+                    break
                 case 'nie':
+                    model = read_model()
                     break
     else:
-        print('Koniec')
-                
-
-
+        model = read_model()
+    
+    # do pracy rodacy
 
 if __name__ == "__main__":
     main()
