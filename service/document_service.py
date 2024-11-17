@@ -6,7 +6,7 @@ import os
 from nltk.tokenize import RegexpTokenizer
 
 class DocumentService:
-    FILES_EXTENSIONS = ('.docs', '.txt')
+    FILES_EXTENSIONS = ('.docs', '.txt', 'docx')
     DOCS_DATA_FILE_PATH = "docs_data"
     DOCS_DIR_PATH = "documents"
 
@@ -23,14 +23,14 @@ class DocumentService:
             path = f'{os.getcwd()}/{DocumentService.DOCS_DIR_PATH}/{file}'
             with open(path, 'r', encoding="latin-1") as doc:
                 content = doc.read()
-            content = self.preprocessing(content)
+            content = DocumentService.preprocessing(content)
             status_data[file] = os.path.getmtime(path)
             self.documents.append(Document(file, os.path.getmtime(path), content))
         json.dump(status_data, open(DocumentService.DOCS_DATA_FILE_PATH,'w+'))
 
     
     # lematyzacja i usuwanie stop words
-    def preprocessing(self, content):
+    def preprocessing(content):
         tokenizer = RegexpTokenizer(r'[a-z][a-z]+')
         data = tokenizer.tokenize(content.lower())
         data = [w for w in data if not w in stopwords.words('english')]
