@@ -11,7 +11,6 @@ class ModelService:
     # uczenie modelu
     def teach_model(self):
         tagged_data = [TaggedDocument(words=doc.content, tags=[doc.name]) for doc in self.documents]
-        print(len(tagged_data))
         max_epochs = 100
         alpha = 0.025
         model = Doc2Vec(alpha=alpha, min_alpha=0.00025, min_count=1, dm=1)
