@@ -33,12 +33,11 @@ class ModelService:
             model.alpha -= 0.0002
             model.min_alpha = model.alpha
         model.save(ModelService.DOC_2_VEC_MODEL_PATH)
-        self.model = model
         self.save_doc_vectors()
-        print('Model Doc2Vec nauczony pomyslnie')
-        return model
+        self.model = model
+        print('Model Doc2Vec zapisany pomyslnie')
     
-        # uczenie modelu TF-IDF
+    # uczenie modelu TF-IDF
     def train_tfidf_model(self):
         self.tfidf_vectorizer = TfidfVectorizer(stop_words='english', lowercase=True)
         contents = [doc.content for doc in self.documents]
@@ -93,7 +92,7 @@ class ModelService:
         
         # Obliczenie podobieństwa cosinusowego
         similarities = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
-        similarities = [round(similarity, 2) for similarity in similarities]
+        similarities = np.array([round(similarity, 2) for similarity in similarities])
         # Posortowanie indeksów według podobieństwa
         sorted_indices = similarities.argsort()[::-1][:top_n]
         
