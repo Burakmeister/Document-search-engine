@@ -1,6 +1,7 @@
 from service.document_service import DocumentService
 from service.model_service import ModelService
 
+
 def main():
     doc_service = DocumentService()
     mod_service = None
