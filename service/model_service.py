@@ -1,7 +1,6 @@
 from gensim.models import Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 from service.document_service import DocumentService
-from scipy.sparse import csr_matrix
 import numpy as np
 import joblib
 import json
@@ -28,13 +27,13 @@ class ModelService:
         alpha = 0.025
         model = Doc2Vec(alpha=alpha, min_alpha=0.00025, min_count=1, dm=1)
         model.build_vocab(tagged_data)
-        for epoch in range(max_epochs):
+        for _ in range(max_epochs):
             model.train(tagged_data, total_examples=model.corpus_count, epochs=1)
             model.alpha -= 0.0002
             model.min_alpha = model.alpha
         model.save(ModelService.DOC_2_VEC_MODEL_PATH)
-        self.save_doc_vectors()
         self.model = model
+        self.save_doc_vectors()
         print('Model Doc2Vec zapisany pomyslnie')
     
     # uczenie modelu TF-IDF
