@@ -63,3 +63,11 @@ class DocumentService:
         doc_dict = {}
         for doc in self.documents:
             doc_dict[doc.name] = doc.content
+
+    def docs_list(self):
+        docs = {}
+        try:
+            docs = json.load(open(DocumentService.DOCS_DATA_FILE_PATH, 'r'))
+        except:
+            return None
+        return docs
